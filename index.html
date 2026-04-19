@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NutriCoach</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f8fafc;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      .card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,.08);
+        padding: 2.5rem 2rem;
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .logo {
+        text-align: center;
+        margin-bottom: 1.75rem;
+      }
+      .logo span {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2563eb;
+      }
+      .logo small {
+        display: block;
+        font-size: .8rem;
+        color: #94a3b8;
+        margin-top: .25rem;
+      }
+
+      /* tabs */
+      .tabs {
+        display: flex;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 1.5rem;
+      }
+      .tab {
+        flex: 1;
+        background: none;
+        border: none;
+        padding: .6rem 0;
+        font-size: .9rem;
+        font-weight: 600;
+        color: #94a3b8;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: color .2s, border-color .2s;
+      }
+      .tab.active { color: #2563eb; border-color: #2563eb; }
+
+      /* forms */
+      .form { display: none; flex-direction: column; gap: 1rem; }
+      .form.active { display: flex; }
+
+      label { font-size: .8rem; font-weight: 500; color: #475569; display: block; margin-bottom: .3rem; }
+
+      input[type="email"],
+      input[type="password"] {
+        width: 100%;
+        border: 1.5px solid #e2e8f0;
+        border-radius: .5rem;
+        padding: .6rem .8rem;
+        font-size: .9rem;
+        outline: none;
+        transition: border-color .2s;
+      }
+      input:focus { border-color: #2563eb; }
+
+      /* role selector */
+      .roles { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+      .role-btn {
+        border: 1.5px solid #e2e8f0;
+        border-radius: .5rem;
+        padding: .6rem;
+        font-size: .85rem;
+        font-weight: 500;
+        color: #64748b;
+        background: none;
+        cursor: pointer;
+        text-transform: capitalize;
+        transition: border-color .2s, background .2s, color .2s;
+      }
+      .role-btn.selected {
+        border-color: #2563eb;
+        background: #eff6ff;
+        color: #2563eb;
+      }
+
+      .btn {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: .5rem;
+        padding: .7rem;
+        font-size: .9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .2s;
+        margin-top: .25rem;
+      }
+      .btn:hover { background: #1d4ed8; }
+      .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+      .error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: .5rem;
+        padding: .6rem .8rem;
+        font-size: .8rem;
+        color: #dc2626;
+        display: none;
+      }
+      .error.show { display: block; }
+
+      .success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: .5rem;
+        padding: 1rem;
+        font-size: .875rem;
+        color: #15803d;
+        display: none;
+        text-align: center;
+        line-height: 1.5;
+      }
+      .success.show { display: block; }
+
+      .footer-note {
+        text-align: center;
+        font-size: .78rem;
+        color: #94a3b8;
+        margin-top: 1.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo">
+        <span>NutriCoach</span>
+        <small>Nutrition platform for clients &amp; nutritionists</small>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- LOGIN -->
+      <form class="form active" id="login-form" onsubmit="handleLogin(event)">
+        <div id="login-error" class="error"></div>
+        <div>
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" placeholder="you@example.com" required />
+        </div>
+        <div>
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" placeholder="••••••••" required />
+        </div>
+        <button class="btn" type="submit" id="login-btn">Sign In</button>
+        <div id="login-success" class="success"></div>
+      </form>
+
+      <!-- SIGNUP -->
+      <form class="form" id="signup-form" onsubmit="handleSignup(event)">
+        <div id="signup-error" class="error"></div>
+        <div>
+          <label for="signup-email">Email</label>
+          <input id="signup-email" type="email" placeholder="you@example.com" required />
+        </div>
+        <div>
+          <label for="signup-password">Password</label>
+          <input id="signup-password" type="password" placeholder="At least 6 characters" minlength="6" required />
+        </div>
+        <div>
+          <label>I am a…</label>
+          <div class="roles">
+            <button type="button" class="role-btn selected" data-role="client" onclick="selectRole(this)">Client</button>
+            <button type="button" class="role-btn" data-role="nutritionist" onclick="selectRole(this)">Nutritionist</button>
+          </div>
+        </div>
+        <button class="btn" type="submit" id="signup-btn">Create Account</button>
+        <div id="signup-success" class="success"></div>
+      </form>
+
+      <p class="footer-note">Powered by Firebase &bull; Built with Next.js</p>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { getFirestore, doc, setDoc, getDoc }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      // ── Replace with your Firebase config ──────────────────────────────────
+      const firebaseConfig = {
+        apiKey:            "YOUR_API_KEY",
+        authDomain:        "YOUR_AUTH_DOMAIN",
+        projectId:         "YOUR_PROJECT_ID",
+        storageBucket:     "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId:             "YOUR_APP_ID",
+      };
+      // ───────────────────────────────────────────────────────────────────────
+
+      const app  = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db   = getFirestore(app);
+
+      /* ── tab switching ── */
+      window.switchTab = (tab) => {
+        document.querySelectorAll(".tab").forEach((t, i) =>
+          t.classList.toggle("active", (i === 0) === (tab === "login")));
+        document.getElementById("login-form").classList.toggle("active", tab === "login");
+        document.getElementById("signup-form").classList.toggle("active", tab === "signup");
+      };
+
+      /* ── role selector ── */
+      window.selectRole = (btn) => {
+        document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      };
+
+      function showError(id, msg) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.classList.add("show");
+      }
+      function clearMessages(...ids) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          el.classList.remove("show");
+          el.textContent = "";
+        });
+      }
+
+      /* ── login ── */
+      window.handleLogin = async (e) => {
+        e.preventDefault();
+        clearMessages("login-error", "login-success");
+        const btn   = document.getElementById("login-btn");
+        const email = document.getElementById("login-email").value;
+        const pass  = document.getElementById("login-password").value;
+        btn.disabled = true;
+        btn.textContent = "Signing in…";
+        try {
+          const cred = await signInWithEmailAndPassword(auth, email, pass);
+          const snap = await getDoc(doc(db, "users", cred.user.uid));
+          const role = snap.exists() ? snap.data().role : "client";
+          const el   = document.getElementById("login-success");
+          el.innerHTML = `Welcome back!<br>Redirecting to <strong>${role}</strong> dashboard…`;
+          el.classList.add("show");
+          setTimeout(() => {
+            window.location.href =
+              role === "nutritionist" ? "/dashboard/nutritionist" : "/dashboard/client";
+          }, 1500);
+        } catch (err) {
+          showError("login-error", err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Sign In";
+        }
+      };
+
+      /* ── signup ── */
+      window.handleSignup = async (e) => {
+        e.preventDefault();
+        clearMessages("signup-error", "signup-success");
+        const btn   = document.getElementById("signup-btn");
+        const email = document.getElementById("signup-email").value;
+        const pass  = document.getElementById("signup-password").value;
+        const role  = document.querySelector(".role-btn.selected").dataset.role;
+        btn.disabled = true;
+        btn.textContent = "Creating account…";
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, email, pass);
+          await setDoc(doc(db, "users", cred.user.uid), {
+            uid: cred.user.uid, email, role,
+            createdAt: new Date().toISOString(),
+          });
+          const el = document.getElementById("signup-success");
+          el.innerHTML = `Account created!<br>Redirecting to <strong>${role}</strong> dashboard…`;
+          el.classList.add("show");
+          setTimeout(() => {
+            window.location.href =
+              role === "nutritionist" ? "/dashboard/nutritionist" : "/dashboard/client";
+          }, 1500);
+        } catch (err) {
+          showError("signup-error", err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Create Account";
+        }
+      };
+    </script>
+  </body>
+</html>
