@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Read(//usr/local/bin/**)",
+      "Read(//Users/rubenmonteiro/.nvm/versions/**)",
+      "Bash(command -v node)",
+      "Read(//usr/local/**)",
+      "Read(//opt/homebrew/**)",
+      "Read(//Users/rubenmonteiro/.volta/**)",
+      "Read(//Users/rubenmonteiro/.fnm/**)",
+      "Bash(/opt/homebrew/bin/brew --version)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
