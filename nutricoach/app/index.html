@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriCoach — Sign In</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .auth-toggle { display:flex; gap:0; background:rgba(255,255,255,0.18); border-radius:var(--radius-pill); padding:3px; margin-bottom:28px; }
+    .auth-toggle-btn {
+      flex:1; padding:8px; border-radius:var(--radius-pill); font-size:13px; font-weight:600;
+      border:none; cursor:pointer; background:transparent; color:rgba(255,255,255,0.75); font-family:inherit;
+      transition:all .15s;
+    }
+    .auth-toggle-btn.active { background:#fff; color:var(--teal-darker); }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-teal-top">
+      <div class="auth-logo-mark"><div class="dot"></div></div>
+      <div class="auth-brand-name">NutriCoach</div>
+
+      <!-- Login / Sign up toggle -->
+      <div class="auth-toggle" style="margin-top:24px;max-width:240px;width:100%">
+        <button class="auth-toggle-btn active" id="toggle-login">Sign In</button>
+        <button class="auth-toggle-btn" id="toggle-signup">Create Account</button>
+      </div>
+    </div>
+
+    <div class="auth-card">
+
+      <!-- ── LOGIN FORM ── -->
+      <div id="login-section">
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in to continue to your account.</p>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+          </div>
+          <div id="login-error" style="display:none;color:var(--danger);font-size:13px;margin-bottom:14px;padding:10px 14px;background:var(--danger-light);border-radius:var(--radius)"></div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px">Sign In</button>
+        </form>
+        <div class="auth-hint">
+          <strong>Demo Accounts</strong>
+          <span>Run <a href="/app/seed.html" style="color:var(--teal)">seed.html</a> once to create these.</span><br>
+          <span><strong>Nutritionist:</strong> sarah@nutricoach.com / password123</span><br>
+          <span><strong>Client:</strong> alice@email.com / password123</span>
+        </div>
+      </div>
+
+      <!-- ── SIGN UP FORM ── -->
+      <div id="signup-section" style="display:none">
+        <h1>Create account</h1>
+        <p class="subtitle">Join NutriCoach to get started.</p>
+        <form id="signup-form">
+          <div class="form-group">
+            <label for="su-name">Full name</label>
+            <input type="text" id="su-name" placeholder="Your full name" autocomplete="name" required>
+          </div>
+          <div class="form-group">
+            <label for="su-email">Email address</label>
+            <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <div class="form-group">
+            <label for="su-password">Password</label>
+            <input type="password" id="su-password" placeholder="At least 6 characters" autocomplete="new-password" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label>I am a</label>
+            <div style="display:flex;gap:10px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:8px;font-weight:500;font-size:15px;text-transform:none;letter-spacing:0;cursor:pointer;flex:1;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius);transition:border-color .15s" id="role-client-label">
+                <input type="radio" name="su-role" value="client" id="su-role-client" checked style="width:18px;height:18px;accent-color:var(--teal);border:none;padding:0">
+                Client
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-weight:500;font-size:15px;text-transform:none;letter-spacing:0;cursor:pointer;flex:1;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius);transition:border-color .15s" id="role-nutri-label">
+                <input type="radio" name="su-role" value="nutritionist" id="su-role-nutri" style="width:18px;height:18px;accent-color:var(--teal);border:none;padding:0">
+                Nutritionist
+              </label>
+            </div>
+          </div>
+          <div id="signup-error" style="display:none;color:var(--danger);font-size:13px;margin-bottom:14px;padding:10px 14px;background:var(--danger-light);border-radius:var(--radius)"></div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px">Create Account</button>
+        </form>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:16px;text-align:center">
+          Already have an account? <a href="#" id="go-to-login" style="color:var(--teal);font-weight:600">Sign in</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    auth.onAuthStateChanged(async user => {
+      if (!user) return;
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (!doc.exists) return;
+        const data = doc.data();
+        window.location.href = data.role === 'nutritionist' ? '/app/nutritionist.html' : '/app/client.html';
+      } catch {}
+    });
+
+    // Toggle between login / signup
+    function showSection(section) {
+      document.getElementById('login-section').style.display  = section === 'login'  ? '' : 'none';
+      document.getElementById('signup-section').style.display = section === 'signup' ? '' : 'none';
+      document.getElementById('toggle-login').classList.toggle('active',  section === 'login');
+      document.getElementById('toggle-signup').classList.toggle('active', section === 'signup');
+    }
+
+    document.getElementById('toggle-login').addEventListener('click',  () => showSection('login'));
+    document.getElementById('toggle-signup').addEventListener('click', () => showSection('signup'));
+    document.getElementById('go-to-login').addEventListener('click', e => { e.preventDefault(); showSection('login'); });
+
+    // Highlight selected role card
+    document.querySelectorAll('[name="su-role"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.getElementById('role-client-label').style.borderColor = document.getElementById('su-role-client').checked ? 'var(--teal)' : 'var(--border)';
+        document.getElementById('role-nutri-label').style.borderColor  = document.getElementById('su-role-nutri').checked  ? 'var(--teal)' : 'var(--border)';
+      });
+    });
+    document.getElementById('role-client-label').style.borderColor = 'var(--teal)';
+
+    // Login submit
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('login-error');
+      const btn      = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      const result = await login(email, password);
+      btn.disabled = false; btn.textContent = 'Sign In';
+      if (!result.ok) { errEl.textContent = result.error; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      window.location.href = result.session.role === 'nutritionist' ? '/app/nutritionist.html' : '/app/client.html';
+    });
+
+    // Sign up submit
+    document.getElementById('signup-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name     = document.getElementById('su-name').value.trim();
+      const email    = document.getElementById('su-email').value.trim();
+      const password = document.getElementById('su-password').value;
+      const role     = document.querySelector('[name="su-role"]:checked').value;
+      const errEl    = document.getElementById('signup-error');
+      const btn      = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Creating account…';
+      const result = await createUser({ name, email, password, role });
+      btn.disabled = false; btn.textContent = 'Create Account';
+      if (!result.ok) { errEl.textContent = result.error; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      // Firebase already signed the user in after createUserWithEmailAndPassword
+      window.location.href = role === 'nutritionist' ? '/app/nutritionist.html' : '/app/client.html';
+    });
+  </script>
+</body>
+</html>

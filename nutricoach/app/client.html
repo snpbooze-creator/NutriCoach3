@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriCoach — My Dashboard</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* Merge topbar into hero on this page */
+    .topbar { background: var(--teal); border-bottom: none; }
+    .topbar-brand { color: #fff; }
+    .topbar-brand .dot { background: rgba(255,255,255,0.7); }
+    .topbar-user { color: rgba(255,255,255,0.8); }
+    .hero { padding-top: 8px; }
+  </style>
+</head>
+<body data-page="client">
+  <div class="page-wrapper">
+
+    <nav class="topbar">
+      <a class="topbar-brand" href="/app/client.html">
+        <div class="dot"></div>
+        NutriCoach
+      </a>
+      <div class="topbar-right">
+        <span class="topbar-user" id="topbar-user"></span>
+        <button class="btn btn-sm btn-ghost" id="logout-btn"
+          style="color:rgba(255,255,255,0.85);min-height:36px">Sign out</button>
+      </div>
+    </nav>
+
+    <!-- Teal hero -->
+    <div class="hero">
+      <h1 class="hero-title" id="welcome-msg">Good day</h1>
+      <p class="hero-sub">Track your nutrition and progress.</p>
+      <div class="hero-stats" id="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-label">Weight</div>
+          <div class="hero-stat-value" id="stat-weight">—</div>
+          <div class="hero-stat-sub">kg</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Check-ins</div>
+          <div class="hero-stat-value" id="stat-checkins">0</div>
+          <div class="hero-stat-sub">total</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Last Check-in</div>
+          <div class="hero-stat-value text-val" id="stat-last-checkin">—</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Plan Updated</div>
+          <div class="hero-stat-value text-val" id="stat-plan-date">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab content -->
+    <div class="main-content">
+      <div data-tabs="main">
+        <div class="tabs">
+          <button class="tab active" data-tab="meal-plan">Meal Plan</button>
+          <button class="tab" data-tab="checkin">Check-in</button>
+          <button class="tab" data-tab="history">History</button>
+        </div>
+
+        <!-- Meal Plan -->
+        <div class="tab-panel active tab-body" data-tab-group="main" data-tab="meal-plan">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Today's Meal Plan</div>
+                <div class="card-subtitle" id="plan-date"></div>
+              </div>
+            </div>
+            <div id="meal-plan-content"></div>
+          </div>
+        </div>
+
+        <!-- Check-in -->
+        <div class="tab-panel tab-body" data-tab-group="main" data-tab="checkin">
+          <div class="card" style="max-width:560px">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Daily Check-in</div>
+                <div class="card-subtitle">Rate today on a scale of 1 – 10</div>
+              </div>
+            </div>
+            <form id="checkin-form">
+              <div class="form-group slider-group">
+                <label>Meal adherence</label>
+                <div class="range-value" id="ci-adherence-val">5</div>
+                <input type="range" id="ci-adherence" min="1" max="10" value="5">
+                <div class="range-labels"><span>Not at all</span><span>Perfectly</span></div>
+              </div>
+              <div class="form-group slider-group">
+                <label>Hunger levels</label>
+                <div class="range-value" id="ci-hunger-val">5</div>
+                <input type="range" id="ci-hunger" min="1" max="10" value="5">
+                <div class="range-labels"><span>Never hungry</span><span>Very hungry</span></div>
+              </div>
+              <div class="form-group slider-group">
+                <label>Energy levels</label>
+                <div class="range-value" id="ci-energy-val">5</div>
+                <input type="range" id="ci-energy" min="1" max="10" value="5">
+                <div class="range-labels"><span>Exhausted</span><span>Full of energy</span></div>
+              </div>
+              <hr class="divider">
+              <div class="form-group">
+                <label for="ci-weight">Weight (kg)</label>
+                <input type="number" id="ci-weight" step="0.1" min="20" max="400" placeholder="e.g. 72.5">
+              </div>
+              <div class="form-group">
+                <label for="ci-comments">Comments (optional)</label>
+                <textarea id="ci-comments" placeholder="How did today go?"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Submit Check-in</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="tab-panel tab-body" data-tab-group="main" data-tab="history">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Check-in History</div>
+            </div>
+            <div id="checkin-history"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item active" id="bnav-meal">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        <span>Meal Plan</span>
+      </button>
+      <button class="bottom-nav-item" id="bnav-checkin">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+        <span>Check-in</span>
+      </button>
+      <button class="bottom-nav-item" id="bnav-history">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+        <span>History</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/client.js"></script>
+  <script>
+    // Wire bottom nav → tabs
+    const bnavMap = { 'bnav-meal': 'meal-plan', 'bnav-checkin': 'checkin', 'bnav-history': 'history' };
+    Object.entries(bnavMap).forEach(([btnId, tabName]) => {
+      document.getElementById(btnId).addEventListener('click', () => {
+        // Activate tab
+        document.querySelectorAll('[data-tabs="main"] .tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('[data-tab-group="main"]').forEach(p => p.classList.remove('active'));
+        document.querySelector(`[data-tabs="main"] .tab[data-tab="${tabName}"]`).classList.add('active');
+        document.querySelector(`[data-tab-group="main"][data-tab="${tabName}"]`).classList.add('active');
+        // Activate bottom nav item
+        document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+        document.getElementById(btnId).classList.add('active');
+        // Scroll to top of content
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // Keep bottom nav in sync with tab clicks
+    document.querySelectorAll('[data-tabs="main"] .tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const t = tab.dataset.tab;
+        document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+        const matchBtn = Object.entries(bnavMap).find(([, v]) => v === t);
+        if (matchBtn) document.getElementById(matchBtn[0]).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

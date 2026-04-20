@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriCoach — Seed Demo Data</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .seed-card { background: var(--surface); border-radius: var(--radius-lg); padding: 32px; max-width: 560px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    .seed-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .seed-desc  { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+    .seed-warning { background: #FFF3CD; border: 1px solid #FBBF24; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #92400E; margin-bottom: 24px; }
+    #seed-log { font-family: monospace; font-size: 13px; background: #f7f7f7; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; min-height: 120px; max-height: 360px; overflow-y: auto; white-space: pre-wrap; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="seed-card">
+    <div class="seed-title">Seed Demo Data</div>
+    <div class="seed-desc">
+      This utility creates all demo Firebase Auth users and Firestore data for NutriCoach.
+      Run it once after setting up your Firebase project.
+    </div>
+    <div class="seed-warning">
+      ⚠️ Only run this once. Running it again on an existing database is safe (existing users will be reused), but it will add duplicate Firestore documents.
+    </div>
+    <button class="btn btn-primary btn-lg btn-full" id="seed-btn" onclick="seedDemoData()">
+      Seed Demo Data
+    </button>
+    <div id="seed-log"></div>
+    <p style="font-size:12px;color:var(--text-light);margin-top:16px;text-align:center">
+      After seeding, <a href="/app/index.html" style="color:var(--teal)">go to the app →</a>
+    </p>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/seed.js"></script>
+</body>
+</html>
