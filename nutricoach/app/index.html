@@ -48,7 +48,7 @@
         </form>
         <div class="auth-hint">
           <strong>Demo Accounts</strong>
-          <span>Run <a href="/app/seed.html" style="color:var(--teal)">seed.html</a> once to create these.</span><br>
+          <span>Run <a href="seed.html" style="color:var(--teal)">seed.html</a> once to create these.</span><br>
           <span><strong>Nutritionist:</strong> sarah@nutricoach.com / password123</span><br>
           <span><strong>Client:</strong> alice@email.com / password123</span>
         </div>
@@ -109,7 +109,7 @@
         const doc = await db.collection('users').doc(user.uid).get();
         if (!doc.exists) return;
         const data = doc.data();
-        window.location.href = data.role === 'nutritionist' ? '/app/nutritionist.html' : '/app/client.html';
+        window.location.href = data.role === 'nutritionist' ? 'nutritionist.html' : 'client.html';
       } catch {}
     });
 
@@ -146,7 +146,7 @@
       btn.disabled = false; btn.textContent = 'Sign In';
       if (!result.ok) { errEl.textContent = result.error; errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
-      window.location.href = result.session.role === 'nutritionist' ? '/app/nutritionist.html' : '/app/client.html';
+      window.location.href = result.session.role === 'nutritionist' ? 'nutritionist.html' : 'client.html';
     });
 
     // Sign up submit
@@ -164,7 +164,7 @@
       if (!result.ok) { errEl.textContent = result.error; errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
       // Firebase already signed the user in after createUserWithEmailAndPassword
-      window.location.href = role === 'nutritionist' ? '/app/nutritionist.html' : '/app/client.html';
+      window.location.href = role === 'nutritionist' ? 'nutritionist.html' : 'client.html';
     });
   </script>
 </body>

@@ -40,7 +40,7 @@ async function renderClientList(clients) {
     ]);
     const last = checkIns[0];
     return `
-      <a class="client-row" href="/app/client-profile.html?clientId=${c.id}">
+      <a class="client-row" href="client-profile.html?clientId=${c.id}">
         <div class="client-row-info">
           <div class="avatar">${getInitials(c.name)}</div>
           <div>
@@ -207,11 +207,11 @@ async function initProfile() {
 
   const params   = new URLSearchParams(window.location.search);
   const clientId = params.get('clientId');
-  if (!clientId) { window.location.href = '/app/nutritionist.html'; return; }
+  if (!clientId) { window.location.href = 'nutritionist.html'; return; }
 
   const client = await getClientById(clientId);
   if (!client || client.nutritionistId !== session.userId) {
-    window.location.href = '/app/nutritionist.html'; return;
+    window.location.href = 'nutritionist.html'; return;
   }
 
   renderProfile(client);

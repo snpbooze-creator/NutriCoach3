@@ -4,26 +4,26 @@ function requireRole(role) {
   return new Promise((resolve) => {
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        window.location.href = '/app/index.html';
+        window.location.href = 'index.html';
         return resolve(null);
       }
       try {
         const doc = await db.collection('users').doc(user.uid).get();
         if (!doc.exists) {
-          window.location.href = '/app/index.html';
+          window.location.href = 'index.html';
           return resolve(null);
         }
         const data = doc.data();
         if (data.role !== role) {
           window.location.href = data.role === 'nutritionist'
-            ? '/app/nutritionist.html'
-            : '/app/client.html';
+            ? 'nutritionist.html'
+            : 'client.html';
           return resolve(null);
         }
         resolve({ userId: user.uid, name: data.name, email: data.email, role: data.role });
       } catch (err) {
         console.error('requireRole error:', err);
-        window.location.href = '/app/index.html';
+        window.location.href = 'index.html';
         resolve(null);
       }
     });
@@ -73,7 +73,7 @@ async function createUser({ name, email, password, role }) {
 
 async function logout() {
   await auth.signOut();
-  window.location.href = '/app/index.html';
+  window.location.href = 'index.html';
 }
 
 function _authError(code) {
