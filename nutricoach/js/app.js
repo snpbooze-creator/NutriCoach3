@@ -1,6 +1,16 @@
 // app.js — shared UI utilities
 
-function showToast(msg, type = 'default', duration = 3000) {
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function showToast(msg, type = 'default', duration = (type === 'error' ? 5000 : 3000)) {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
   const t = document.createElement('div');
@@ -29,6 +39,7 @@ function initTabs() {
       tab.classList.add('active');
       const panel = document.querySelector(`[data-tab-group="${group}"][data-tab="${tab.dataset.tab}"]`);
       if (panel) panel.classList.add('active');
+      else console.warn(`[initTabs] no panel for tab "${tab.dataset.tab}" in group "${group}"`);
     });
   });
 }

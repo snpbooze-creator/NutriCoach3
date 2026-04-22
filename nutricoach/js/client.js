@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const welcomeEl = document.getElementById('welcome-msg');
   if (welcomeEl) welcomeEl.textContent = greeting + ', ' + session.name.split(' ')[0];
 
+  // Show loading state while profile loads
+  const mealEl = document.getElementById('meal-plan-content');
+  if (mealEl) mealEl.innerHTML = '<div class="empty-state"><p style="color:var(--text-muted)">Loading…</p></div>';
+
   const client = await getClientByUserId(session.userId);
   if (!client) { document.body.innerHTML = '<p style="padding:40px">Client profile not found.</p>'; return; }
 
@@ -91,7 +95,7 @@ async function renderMealPlan(client) {
                     <input type="checkbox" class="meal-checkbox" data-key="${key}"
                       ${checked ? 'checked' : ''}
                       style="width:18px;height:18px;accent-color:var(--teal);flex-shrink:0;cursor:pointer;margin-right:10px">
-                    <span class="meal-item-name" style="${checked ? 'text-decoration:line-through;color:var(--text-light)' : ''}">${item}</span>
+                    <span class="meal-item-name" style="${checked ? 'text-decoration:line-through;color:var(--text-light)' : ''}">${escapeHtml(item)}</span>
                   </label>`;
               }).join('')
             : '<div class="meal-empty">No items yet</div>'
@@ -102,28 +106,11 @@ async function renderMealPlan(client) {
     ).join('') + (plan.notes ? `
       <div style="margin-top:16px;padding:12px 14px;background:var(--teal-light);border-radius:var(--radius);font-size:13px;color:var(--teal-darker)">
         <strong style="display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Nutritionist Notes</strong>
-        ${plan.notes}
+        ${escapeHtml(plan.notes)}
       </div>` : '');
-
-    // Wire checkboxes
-    el.querySelectorAll('.meal-checkbox').forEach(cb => {
-      cb.addEventListener('change', async () => {
-        let currentChecks = await getMealChecks(client.id, today);
-        if (cb.checked) {
-          if (!currentChecks.includes(cb.dataset.key)) currentChecks.push(cb.dataset.key);
-        } else {
-          currentChecks = currentChecks.filter(k => k !== cb.dataset.key);
-        }
-        await saveMealChecks(client.id, today, currentChecks);
-        await syncAdherence();
-        await render(); // re-render to update strikethrough
-      });
-    });
 
     await syncAdherence();
   }
-
-  await render();
 
   // Progress summary bar below the plan
   // Remove existing bar if present to avoid duplicates
@@ -151,8 +138,27 @@ async function renderMealPlan(client) {
       </div>`;
   }
 
-  // Observe meal checkbox changes to update summary
-  el.addEventListener('change', updateSummary);
+  // Single delegated listener on el — survives innerHTML re-renders; guard prevents
+  // duplicate registration when renderMealPlan is called again (e.g. after check-in submit).
+  if (!el._mealListenerAttached) {
+    el._mealListenerAttached = true;
+    el.addEventListener('change', async e => {
+      const cb = e.target.closest('.meal-checkbox');
+      if (!cb) return;
+      let currentChecks = await getMealChecks(client.id, today);
+      if (cb.checked) {
+        if (!currentChecks.includes(cb.dataset.key)) currentChecks.push(cb.dataset.key);
+      } else {
+        currentChecks = currentChecks.filter(k => k !== cb.dataset.key);
+      }
+      await saveMealChecks(client.id, today, currentChecks);
+      await syncAdherence();
+      await render();
+      await updateSummary();
+    });
+  }
+
+  await render();
   await updateSummary();
 }
 
@@ -217,6 +223,16 @@ async function renderClientAppointments(client, session) {
   const el = document.getElementById('appointments-content');
   if (!el) return;
 
+  if (!client.nutritionistId) {
+    el.innerHTML = `<div class="card" style="max-width:560px">
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <p>You don't have a nutritionist assigned yet. Once assigned, you'll be able to request and view appointments here.</p>
+      </div>
+    </div>`;
+    return;
+  }
+
   const TYPE_LABELS = {
     consultation:   'Initial Consultation',
     'follow-up':    'Follow-up',
@@ -249,7 +265,7 @@ async function renderClientAppointments(client, session) {
             <div style="min-width:0">
               <div style="font-weight:600;font-size:14px">${TYPE_LABELS[a.type] || a.type}</div>
               <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${formatDate(a.date)} · ${formatTime(a.time)}</div>
-              ${a.notes ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic">${a.notes}</div>` : ''}
+              ${a.notes ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic">${escapeHtml(a.notes)}</div>` : ''}
             </div>
             <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
               ${statusBadge}
@@ -378,7 +394,7 @@ async function renderCheckInHistory(client) {
               <td><span class="score ${scoreClass(ci.hunger)}">${ci.hunger}</span></td>
               <td><span class="score ${scoreClass(ci.energy)}">${ci.energy}</span></td>
               <td><strong>${ci.weight} kg</strong></td>
-              <td style="max-width:200px;color:var(--text-muted)">${ci.comments || '—'}</td>
+              <td style="max-width:200px;color:var(--text-muted)">${escapeHtml(ci.comments) || '—'}</td>
             </tr>`).join('')}
         </tbody>
       </table>

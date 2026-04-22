@@ -50,6 +50,8 @@ async function saveMealPlan(plan) {
 }
 
 async function createMealPlan(clientId) {
+  const existing = await getMealPlanByClient(clientId);
+  if (existing) return existing;
   const data = {
     clientId,
     dateCreated: new Date().toISOString().split('T')[0],
@@ -91,6 +93,11 @@ async function applyTemplateToClient(templateId, clientId) {
     meals: tpl.meals.map(m => ({ type: m.type, items: [...m.items] })),
     notes: tpl.notes || ''
   };
+  const existing = await getMealPlanByClient(clientId);
+  if (existing) {
+    await db.collection('mealPlans').doc(existing.id).set(data);
+    return { id: existing.id, ...data };
+  }
   const ref = await db.collection('mealPlans').add(data);
   return { id: ref.id, ...data };
 }
@@ -105,9 +112,10 @@ async function getCheckInsByClient(clientId) {
 }
 
 async function addCheckIn(checkIn) {
-  const ref = await db.collection('checkIns').add(checkIn);
+  const docId = `${checkIn.clientId}_${checkIn.date}`;
+  await db.collection('checkIns').doc(docId).set(checkIn);
   await updateClient(checkIn.clientId, { currentWeight: checkIn.weight });
-  return { id: ref.id, ...checkIn };
+  return { id: docId, ...checkIn };
 }
 
 // ─── MEASUREMENTS ─────────────────────────────────────────────────────────────
@@ -203,6 +211,7 @@ function formatTime(timeStr) {
 }
 
 function scoreClass(val) {
+  if (val == null) return 'score-low';
   if (val >= 8) return 'score-high';
   if (val >= 5) return 'score-mid';
   return 'score-low';

@@ -21,8 +21,6 @@ async function initDashboard() {
     getAppointmentsByNutritionist(session.userId)
   ]);
 
-  document.getElementById('stat-clients').textContent = clients.length;
-
   const upcomingCount = allAppts.filter(a => a.status !== 'cancelled' && a.status !== 'completed' && a.date >= today).length;
   document.getElementById('stat-upcoming-appts').textContent = upcomingCount;
 
@@ -37,6 +35,7 @@ async function initDashboard() {
 
 async function renderClientList(session) {
   const el = document.getElementById('client-list');
+  el.innerHTML = '<div class="empty-state"><p style="color:var(--text-muted)">Loading clients…</p></div>';
 
   async function render() {
     const [assigned, unassigned] = await Promise.all([
@@ -58,8 +57,8 @@ async function renderClientList(session) {
               <div class="client-row-info">
                 <div class="avatar">${getInitials(c.name)}</div>
                 <div>
-                  <div class="client-row-name">${c.name}</div>
-                  <div class="client-row-meta">${c.goal || 'No goal set'} · ${c.currentWeight ? c.currentWeight + ' kg' : '—'}</div>
+                  <div class="client-row-name">${escapeHtml(c.name)}</div>
+                  <div class="client-row-meta">${escapeHtml(c.goal) || 'No goal set'} · ${c.currentWeight ? c.currentWeight + ' kg' : '—'}</div>
                 </div>
               </div>
               <div class="client-row-right">
@@ -81,8 +80,8 @@ async function renderClientList(session) {
           <div class="card card-sm" style="margin-bottom:10px;display:flex;align-items:center;gap:12px">
             <div class="avatar" style="flex-shrink:0">${getInitials(c.name)}</div>
             <div style="flex:1;min-width:0">
-              <div style="font-weight:600;font-size:14px">${c.name}</div>
-              <div style="font-size:12px;color:var(--text-muted)">${c.goal || 'No goal set'}</div>
+              <div style="font-weight:600;font-size:14px">${escapeHtml(c.name)}</div>
+              <div style="font-size:12px;color:var(--text-muted)">${escapeHtml(c.goal) || 'No goal set'}</div>
             </div>
             <button class="btn btn-sm btn-primary assign-btn" data-id="${c.id}" style="flex-shrink:0">Assign to me</button>
           </div>`).join('')}
@@ -119,10 +118,10 @@ async function renderTemplateManager(nutritionistId) {
       <div class="card card-sm" style="margin-bottom:10px">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
           <div style="min-width:0">
-            <div style="font-weight:600;font-size:14px">${t.name}</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${t.description || ''}</div>
+            <div style="font-weight:600;font-size:14px">${escapeHtml(t.name)}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escapeHtml(t.description) || ''}</div>
             <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-              ${t.meals.map(m => `<span class="badge badge-blue">${m.type} · ${m.items.length}</span>`).join('')}
+              ${t.meals.map(m => `<span class="badge badge-blue">${escapeHtml(m.type)} · ${m.items.length}</span>`).join('')}
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
@@ -183,7 +182,7 @@ function openTemplateEditor(existing, nutritionistId, onSave) {
         <div style="display:flex;flex-direction:column;gap:6px" id="tpl-items-${mi}">
           ${meal.items.map((item, ii) => `
             <div class="meal-item">
-              <span class="meal-item-name">${item}</span>
+              <span class="meal-item-name">${escapeHtml(item)}</span>
               <div class="meal-item-actions">
                 <button class="btn btn-sm btn-ghost" style="color:var(--danger)" onclick="(function(){
                   tpl_meals_ref[${mi}].items.splice(${ii},1);
@@ -246,6 +245,7 @@ function openTemplateEditor(existing, nutritionistId, onSave) {
 async function renderAppointmentsTab(session) {
   const el = document.getElementById('appointments-list');
   if (!el) return;
+  el.innerHTML = '<div class="empty-state"><p style="color:var(--text-muted)">Loading appointments…</p></div>';
 
   const TYPE_LABELS = {
     consultation:   'Initial Consultation',
@@ -299,7 +299,7 @@ async function renderAppointmentsTab(session) {
               <div style="font-size:12px;color:var(--text-muted);margin-top:2px">
                 ${formatDate(a.date)} · ${formatTime(a.time)} · ${TYPE_LABELS[a.type] || a.type}
               </div>
-              ${a.notes ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic">${a.notes}</div>` : ''}
+              ${a.notes ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic">${escapeHtml(a.notes)}</div>` : ''}
             </div>
             <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
               ${statusBadge}
@@ -351,6 +351,7 @@ async function renderAppointmentsTab(session) {
 
   document.getElementById('close-appt-modal-btn')?.addEventListener('click', () => {
     modal.style.display = 'none';
+    form.reset();
   });
 
   form?.addEventListener('submit', async e => {
@@ -414,10 +415,10 @@ function renderProfile(client, session) {
   document.getElementById('profile-details').innerHTML = `
     <div class="info-grid">
       <div class="info-item"><label>Age</label><div class="value">${client.age ? client.age + ' years' : '—'}</div></div>
-      <div class="info-item"><label>Height</label><div class="value">${client.height || '—'}</div></div>
+      <div class="info-item"><label>Height</label><div class="value">${escapeHtml(client.height) || '—'}</div></div>
       <div class="info-item"><label>Current Weight</label><div class="value">${client.currentWeight ? client.currentWeight + ' kg' : '—'}</div></div>
-      <div class="info-item"><label>Goal</label><div class="value">${client.goal || '—'}</div></div>
-      <div class="info-item"><label>Allergies</label><div class="value">${client.allergies || 'None'}</div></div>
+      <div class="info-item"><label>Goal</label><div class="value">${escapeHtml(client.goal) || '—'}</div></div>
+      <div class="info-item"><label>Allergies</label><div class="value">${escapeHtml(client.allergies) || 'None'}</div></div>
     </div>
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
       <button class="btn btn-sm btn-ghost" id="remove-client-btn" style="color:var(--danger)">Remove from my clients</button>
@@ -474,7 +475,7 @@ async function renderMealPlanEditor(client, nutritionistId) {
             ${meal.items.length
               ? meal.items.map((item, ii) => `
                   <div class="meal-item">
-                    <span class="meal-item-name">${item}</span>
+                    <span class="meal-item-name">${escapeHtml(item)}</span>
                     <div class="meal-item-actions">
                       <button class="btn btn-sm btn-ghost remove-item" data-meal="${mi}" data-item="${ii}" style="color:var(--danger)">✕</button>
                     </div>
@@ -494,11 +495,17 @@ async function renderMealPlanEditor(client, nutritionistId) {
         <textarea id="plan-notes" rows="3" placeholder="Calorie targets, timing, special instructions…">${plan.notes || ''}</textarea>
       </div>`;
 
+    function saveNotesFromDom() {
+      const notesEl = document.getElementById('plan-notes');
+      if (notesEl) plan.notes = notesEl.value;
+    }
+
     el.querySelectorAll('.add-item-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const mi = parseInt(btn.dataset.meal);
         const inp = document.getElementById(`item-input-${mi}`);
         const val = inp.value.trim(); if (!val) return;
+        saveNotesFromDom();
         plan.meals[mi].items.push(val); inp.value = ''; await renderEditor();
       });
     });
@@ -508,12 +515,14 @@ async function renderMealPlanEditor(client, nutritionistId) {
         if (e.key !== 'Enter') return; e.preventDefault();
         const mi = parseInt(input.dataset.meal);
         const val = input.value.trim(); if (!val) return;
+        saveNotesFromDom();
         plan.meals[mi].items.push(val); input.value = ''; await renderEditor();
       });
     });
 
     el.querySelectorAll('.remove-item').forEach(btn => {
       btn.addEventListener('click', async () => {
+        saveNotesFromDom();
         plan.meals[parseInt(btn.dataset.meal)].items.splice(parseInt(btn.dataset.item), 1);
         await renderEditor();
       });
@@ -592,7 +601,7 @@ async function renderCheckInHistoryN(client) {
               <td><strong>${ci.weight} kg</strong></td>
               <td>${ci.bodyFat != null ? ci.bodyFat + '%' : '—'}</td>
               <td>${ci.muscleMass != null ? ci.muscleMass + ' kg' : '—'}</td>
-              <td style="max-width:200px;color:var(--text-muted)">${ci.comments || '—'}</td>
+              <td style="max-width:200px;color:var(--text-muted)">${escapeHtml(ci.comments) || '—'}</td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -635,6 +644,7 @@ function renderProgressionSection(client) {
               <input type="number" id="m-muscle" step="0.1" min="10" max="120" placeholder="e.g. 47.0">
             </div>
           </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Enter at least one of body fat or muscle mass.</p>
           <button type="submit" class="btn btn-primary">Save Measurement</button>
         </form>
       </div>

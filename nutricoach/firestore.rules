@@ -2,46 +2,55 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Development rules ──────────────────────────────────────────────────
-    // Any authenticated user can read and write all documents.
-    // Sufficient for development and demo purposes.
-    // Replace with the production rules below before going live.
-    match /{document=**} {
+    function isNutritionist() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'nutritionist';
+    }
+
+    // Users can only read/write their own profile
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Clients: any auth user can read; only nutritionists can write;
+    // clients can update their own record (e.g. currentWeight from check-in)
+    match /clients/{clientId} {
+      allow read:   if request.auth != null;
+      allow write:  if isNutritionist();
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Meal plans: read by any auth user; write only by nutritionists
+    match /mealPlans/{planId} {
+      allow read:  if request.auth != null;
+      allow write: if isNutritionist();
+    }
+
+    // Check-ins: any authenticated user can read and write
+    match /checkIns/{checkInId} {
       allow read, write: if request.auth != null;
     }
 
-    // ── Production rules (replace the above with this block) ───────────────
-    // function isNutritionist() {
-    //   return request.auth != null &&
-    //     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'nutritionist';
-    // }
-    // function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
-    //
-    // match /users/{uid} {
-    //   allow read, write: if isOwner(uid);
-    // }
-    // match /clients/{clientId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if isNutritionist();
-    // }
-    // match /mealPlans/{planId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if isNutritionist();
-    // }
-    // match /checkIns/{checkInId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if request.auth != null;
-    // }
-    // match /mealPlanTemplates/{tplId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if isNutritionist();
-    // }
-    // match /measurements/{measId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if isNutritionist();
-    // }
-    // match /mealChecks/{checkId} {
-    //   allow read, write: if request.auth != null;
-    // }
+    // Templates: any auth user can read; write only by nutritionists
+    match /mealPlanTemplates/{tplId} {
+      allow read:  if request.auth != null;
+      allow write: if isNutritionist();
+    }
+
+    // Measurements: read by any auth user; write only by nutritionists
+    match /measurements/{measId} {
+      allow read:  if request.auth != null;
+      allow write: if isNutritionist();
+    }
+
+    // Meal check ticks: any authenticated user can read and write
+    match /mealChecks/{checkId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Appointments: any authenticated user can read and write
+    match /appointments/{apptId} {
+      allow read, write: if request.auth != null;
+    }
   }
 }
