@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Client Profile — NutriCoach</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="icon" type="image/svg+xml" href="../icon.svg">
@@ -31,6 +31,10 @@
         <!-- topbar-user shown inside hero on desktop -->
         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
           <span id="topbar-user" style="font-size:12px;color:rgba(255,255,255,0.7);display:none"></span>
+          <button class="btn btn-sm" id="account-btn"
+            style="background:rgba(255,255,255,0.18);color:#fff;border:none;min-height:34px;padding:0 10px" title="Account settings">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
           <button class="btn btn-sm" id="logout-btn"
             style="background:rgba(255,255,255,0.18);color:#fff;border:none;min-height:34px">Sign out</button>
         </div>

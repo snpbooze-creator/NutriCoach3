@@ -76,6 +76,41 @@ async function logout() {
   window.location.href = 'index.html';
 }
 
+async function deleteAccount() {
+  const user = auth.currentUser;
+  if (!user) return { ok: false, error: 'Not signed in.' };
+  try {
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    const role = userDoc.exists ? userDoc.data().role : null;
+    const batch = db.batch();
+    if (role === 'nutritionist') {
+      const clients = await db.collection('clients').where('nutritionistId', '==', user.uid).get();
+      clients.docs.forEach(doc => batch.update(doc.ref, { nutritionistId: null }));
+    }
+    batch.delete(db.collection('users').doc(user.uid));
+    await batch.commit();
+    await user.delete();
+    return { ok: true };
+  } catch (err) {
+    if (err.code === 'auth/requires-recent-login') {
+      return { ok: false, requiresReauth: true, error: 'Please re-enter your password to confirm.' };
+    }
+    return { ok: false, error: err.message };
+  }
+}
+
+async function reauthAndDelete(password) {
+  const user = auth.currentUser;
+  if (!user) return { ok: false, error: 'Not signed in.' };
+  try {
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+    await user.reauthenticateWithCredential(credential);
+    return await deleteAccount();
+  } catch (err) {
+    return { ok: false, error: _authError(err.code) };
+  }
+}
+
 function _authError(code) {
   switch (code) {
     case 'auth/user-not-found':       return 'No account found with that email.';

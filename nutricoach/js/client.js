@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setTopbarUser(session.name, 'client');
   initLogout();
   initTabs();
+  document.getElementById('account-btn')?.addEventListener('click', () => showAccountModal(session));
 
   // Greeting
   const h = new Date().getHours();

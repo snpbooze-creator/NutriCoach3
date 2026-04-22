@@ -48,6 +48,72 @@ function getInitials(name) {
   return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
 }
 
+function showAccountModal(session) {
+  let backdrop = document.getElementById('account-modal-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'account-modal-backdrop';
+    backdrop.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:600;align-items:flex-end;justify-content:center';
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'background:var(--surface);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:24px 20px 40px';
+    sheet.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <span style="font-size:17px;font-weight:700">Account</span>
+        <button id="close-account-modal-btn" class="btn btn-sm btn-ghost">✕</button>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:2px">Signed in as</div>
+        <div style="font-weight:600;font-size:15px">${escapeHtml(session.name)}</div>
+        <div style="font-size:13px;color:var(--text-muted)">${escapeHtml(session.email)}</div>
+      </div>
+      <hr class="divider">
+      <div id="account-modal-body" style="margin-top:16px"></div>`;
+    backdrop.appendChild(sheet);
+    document.body.appendChild(backdrop);
+
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.style.display = 'none'; });
+    document.getElementById('close-account-modal-btn').addEventListener('click', () => { backdrop.style.display = 'none'; });
+  }
+
+  function showReauthForm(msg) {
+    document.getElementById('account-modal-body').innerHTML = `
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">${escapeHtml(msg)}</p>
+      <div class="form-group">
+        <label for="reauth-pw">Current password</label>
+        <input type="password" id="reauth-pw" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <div id="reauth-err" style="display:none;color:var(--danger);font-size:13px;margin-bottom:12px;padding:10px 14px;background:var(--danger-light);border-radius:var(--radius)"></div>
+      <button id="confirm-delete-btn" class="btn btn-full" style="background:var(--danger);color:#fff;font-weight:600">Confirm Delete</button>`;
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+      const pw = document.getElementById('reauth-pw').value;
+      const errEl = document.getElementById('reauth-err');
+      const btn = document.getElementById('confirm-delete-btn');
+      if (!pw) { errEl.textContent = 'Please enter your password.'; errEl.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'Deleting…';
+      const r = await reauthAndDelete(pw);
+      if (r.ok) { window.location.href = 'index.html'; return; }
+      errEl.textContent = r.error; errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Confirm Delete';
+    });
+  }
+
+  document.getElementById('account-modal-body').innerHTML = `
+    <button id="delete-account-btn" class="btn btn-full" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger);font-weight:600;margin-bottom:8px">Delete Account</button>
+    <p style="font-size:12px;color:var(--text-muted);text-align:center">Permanently deletes your account. This cannot be undone.</p>`;
+  document.getElementById('delete-account-btn').addEventListener('click', async () => {
+    if (!confirm('Delete your account permanently? This cannot be undone.')) return;
+    const btn = document.getElementById('delete-account-btn');
+    btn.disabled = true; btn.textContent = 'Deleting…';
+    const result = await deleteAccount();
+    if (result.ok) { window.location.href = 'index.html'; return; }
+    if (result.requiresReauth) { showReauthForm(result.error); return; }
+    btn.disabled = false; btn.textContent = 'Delete Account';
+    showToast(result.error, 'error');
+  });
+
+  backdrop.style.display = 'flex';
+}
+
 // field: the checkIn property to chart (default 'weight'), unit: display suffix
 function renderWeightChart(checkIns, containerId, field = 'weight', unit = 'kg') {
   const el = document.getElementById(containerId);

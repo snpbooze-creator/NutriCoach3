@@ -14,6 +14,7 @@ async function initDashboard() {
   setTopbarUser(session.name, 'nutritionist');
   initLogout();
   initTabs();
+  document.getElementById('account-btn')?.addEventListener('click', () => showAccountModal(session));
 
   const today = new Date().toISOString().split('T')[0];
   const [clients, allAppts] = await Promise.all([
@@ -388,6 +389,7 @@ async function initProfile() {
   setTopbarUser(session.name, 'nutritionist');
   initLogout();
   initTabs();
+  document.getElementById('account-btn')?.addEventListener('click', () => showAccountModal(session));
 
   const params   = new URLSearchParams(window.location.search);
   const clientId = params.get('clientId');
