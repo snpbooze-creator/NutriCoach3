@@ -610,9 +610,21 @@ input[type="range"] {
   border-radius: var(--radius-pill);
   font-size: 14px;
   min-height: 42px;
+  /* override global label rule */
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0;
 }
 .meal-item-name { flex: 1; font-weight: 500; }
 .meal-item-actions { display: flex; gap: 4px; }
+/* Shopping list items: left-aligned and thinner */
+.meal-item-check {
+  justify-content: flex-start;
+  padding: 6px 12px;
+  min-height: 34px;
+}
 
 .meal-empty {
   padding: 12px;
@@ -681,8 +693,9 @@ tbody tr:hover td { background: var(--teal-light); }
   z-index: 50;
   background: var(--bg);
 }
-/* Profile page has no topbar — stick to top of viewport */
-[data-page="profile"] .tabs {
+/* Pages without topbar — stick to top of viewport */
+[data-page="profile"] .tabs,
+[data-page="client"] .tabs {
   top: 0;
 }
 .tabs::-webkit-scrollbar { display: none; }
