@@ -1077,8 +1077,20 @@ async function renderIngredientsLibrary(nutritionistId) {
   });
 }
 
-function parseIngredientsExcel(file) {
+function loadSheetJS() {
   return new Promise((resolve, reject) => {
+    if (window.XLSX) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Could not load SheetJS'));
+    document.head.appendChild(s);
+  });
+}
+
+function parseIngredientsExcel(file) {
+  return new Promise(async (resolve, reject) => {
+    try { await loadSheetJS(); } catch (err) { reject(err); return; }
     const reader = new FileReader();
     reader.onerror = reject;
     reader.onload = e => {
