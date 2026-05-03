@@ -26,16 +26,11 @@ async function updateClient(clientId, fields) {
 
 async function getUnassignedClients() {
   const snap = await db.collection('clients').where('nutritionistId', '==', null).get();
-  const candidates = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  // Filter out nutritionist accounts and stale docs with no valid client user
-  const filtered = await Promise.all(candidates.map(async c => {
-    if (!c.userId) return null;
-    const userSnap = await db.collection('users').doc(c.userId).get();
-    if (!userSnap.exists) return null;
-    if (userSnap.data().role === 'nutritionist') return null;
-    return c;
-  }));
-  return filtered.filter(Boolean);
+  // Client docs are only created for role=client during signup, so any doc here is a client.
+  // We can't read other users' /users docs (rule: uid == own uid), so we skip that check.
+  return snap.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter(c => c.userId); // must have a userId to be a real client
 }
 
 async function assignClientToNutritionist(clientId, nutritionistId) {

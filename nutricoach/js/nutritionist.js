@@ -32,8 +32,8 @@ async function initDashboard() {
   await renderClientList(session);
   await renderAppointmentsTab(session);
   await renderTemplateManager(session.userId);
-  await renderRecipeManager(session.userId);  // NEW FEATURE
-  await renderIngredientsLibrary(session.userId);
+  await renderRecipeManager(session.userId);
+  try { await renderIngredientsLibrary(session.userId); } catch (e) { console.warn('Ingredients library unavailable:', e.message); }
 }
 
 async function renderClientList(session) {
@@ -1036,7 +1036,12 @@ async function renderIngredientsLibrary(nutritionistId) {
     });
   }
 
-  await render();
+  try {
+    await render();
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state"><p style="color:var(--danger)">Could not load ingredients. Please refresh and try again.</p></div>';
+    throw e;
+  }
 
   document.getElementById('ing-search')?.addEventListener('input', e => render(e.target.value));
 
