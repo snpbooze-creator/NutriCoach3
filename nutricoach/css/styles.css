@@ -825,7 +825,8 @@ tbody tr:hover td { background: var(--teal-light); }
 
 /* ─── EMPTY STATE ─────────────────────────────────────────────────────────── */
 .empty-state { text-align: center; padding: 44px 20px; color: var(--text-muted); }
-.empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state .empty-icon { margin-bottom: 12px; line-height: 0; }
+.empty-state .empty-icon svg { display: inline-block; }
 .empty-state p { font-size: 14px; }
 
 /* ─── SLIDER GROUP ────────────────────────────────────────────────────────── */

@@ -416,7 +416,7 @@ async function renderAppointmentsTab(session) {
     });
 
     if (!list.length) {
-      el.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>${activeFilter === 'upcoming' ? 'No upcoming appointments. Schedule one!' : 'No appointments found.'}</p></div>`;
+      el.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><p>${activeFilter === 'upcoming' ? 'No upcoming appointments. Schedule one!' : 'No appointments found.'}</p></div>`;
       return;
     }
 
@@ -581,7 +581,7 @@ async function renderMealPlanEditor(client, nutritionistId) {
     if (!plan) {
       el.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">🥗</div>
+          <div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6h3v7"/></svg></div>
           <p style="margin-bottom:16px">No meal plan yet.</p>
           <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
             <button class="btn btn-primary" id="create-plan-btn">Create Blank Plan</button>
@@ -625,8 +625,8 @@ async function renderMealPlanEditor(client, nutritionistId) {
           <div class="add-item-row">
             <input type="text" placeholder="Add food item…" class="add-item-input" data-meal="${mi}" id="item-input-${mi}">
             <button class="btn btn-sm btn-secondary add-item-btn" data-meal="${mi}">Add</button>
-            <button class="btn btn-sm btn-ghost from-recipe-btn" data-meal="${mi}" title="Add from recipe" type="button">📖</button>
-            <button class="btn btn-sm btn-ghost from-ingredients-btn" data-meal="${mi}" title="Add from ingredients library" type="button">🥑</button>
+            <button class="btn btn-sm btn-ghost from-recipe-btn" data-meal="${mi}" title="Add from recipe" type="button"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></button>
+            <button class="btn btn-sm btn-ghost from-ingredients-btn" data-meal="${mi}" title="Add from ingredients library" type="button"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></button>
           </div>
         </div>
         ${mi < plan.meals.length - 1 ? '<hr class="divider">' : ''}`).join('')}
@@ -773,7 +773,7 @@ async function renderCheckInHistoryN(client) {
   ]);
   const el = document.getElementById('checkin-history');
   if (!checkIns.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No check-ins submitted yet.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div><p>No check-ins submitted yet.</p></div>';
     return;
   }
 
@@ -981,7 +981,7 @@ async function renderIngredientsLibrary(nutritionistId) {
     if (!all.length) {
       el.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">📊</div>
+          <div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
           <p>No ingredients yet.<br>Click <strong>Import Excel</strong> to upload your list.</p>
         </div>`;
       return;

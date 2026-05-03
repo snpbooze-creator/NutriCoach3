@@ -76,7 +76,7 @@ async function renderMealPlan(client) {
   const today = new Date().toISOString().split('T')[0];
 
   if (!plan) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🥗</div><p>No meal plan assigned yet. Your nutritionist will add one soon.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6h3v7"/></svg></div><p>No meal plan assigned yet. Your nutritionist will add one soon.</p></div>';
     return;
   }
 
@@ -285,7 +285,7 @@ async function renderClientAppointments(client, session) {
   if (!client.nutritionistId) {
     el.innerHTML = `<div class="card" style="max-width:560px">
       <div class="empty-state">
-        <div class="empty-icon">📅</div>
+        <div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
         <p>You don't have a nutritionist assigned yet. Once assigned, you'll be able to request and view appointments here.</p>
       </div>
     </div>`;
@@ -372,7 +372,7 @@ async function renderClientAppointments(client, session) {
       ${upcoming.length  ? `<div style="margin-bottom:16px"><div class="section-title" style="margin-bottom:10px">Upcoming</div>${upcoming.map(apptCard).join('')}</div>` : ''}
       ${past.length      ? `<div style="margin-bottom:16px"><div class="section-title" style="margin-bottom:10px">Past</div>${past.map(apptCard).join('')}</div>` : ''}
       ${cancelled.length ? `<div style="margin-bottom:16px"><div class="section-title" style="margin-bottom:10px">Cancelled</div>${cancelled.map(apptCard).join('')}</div>` : ''}
-      ${!all.length      ? `<div class="empty-state"><div class="empty-icon">📅</div><p>No appointments yet. Request one above!</p></div>` : ''}
+      ${!all.length      ? `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><p>No appointments yet. Request one above!</p></div>` : ''}
     `;
 
     document.getElementById('request-appt-form').addEventListener('submit', async e => {
@@ -413,7 +413,7 @@ async function renderCheckInHistory(client) {
   const checkIns = await getCheckInsByClient(client.id);
   const el = document.getElementById('checkin-history');
   if (!checkIns.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No check-ins yet. Submit your first one!</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div><p>No check-ins yet. Submit your first one!</p></div>';
     return;
   }
   el.innerHTML = `
