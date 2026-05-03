@@ -33,6 +33,7 @@ async function initDashboard() {
   await renderAppointmentsTab(session);
   await renderTemplateManager(session.userId);
   await renderRecipeManager(session.userId);  // NEW FEATURE
+  await renderIngredientsLibrary(session.userId);
 }
 
 async function renderClientList(session) {
@@ -625,6 +626,7 @@ async function renderMealPlanEditor(client, nutritionistId) {
             <input type="text" placeholder="Add food item…" class="add-item-input" data-meal="${mi}" id="item-input-${mi}">
             <button class="btn btn-sm btn-secondary add-item-btn" data-meal="${mi}">Add</button>
             <button class="btn btn-sm btn-ghost from-recipe-btn" data-meal="${mi}" title="Add from recipe" type="button">📖</button>
+            <button class="btn btn-sm btn-ghost from-ingredients-btn" data-meal="${mi}" title="Add from ingredients library" type="button">🥑</button>
           </div>
         </div>
         ${mi < plan.meals.length - 1 ? '<hr class="divider">' : ''}`).join('')}
@@ -687,6 +689,31 @@ async function renderMealPlanEditor(client, nutritionistId) {
           renderEditor();
           if (added.length) showToast(`Added ${added.length} ingredient${added.length !== 1 ? 's' : ''} from "${recipe.name}".`, 'success');
           else showToast('All ingredients already in this meal.', 'default');
+        });
+      });
+    });
+
+    // Add from ingredients library
+    el.querySelectorAll('.from-ingredients-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const mi          = parseInt(btn.dataset.meal);
+        const ingredients = await getIngredients(nutritionistId);
+        if (!ingredients.length) {
+          showToast('No ingredients in your library yet. Import an Excel file from the Ingredients tab.', 'error');
+          return;
+        }
+        saveNotesFromDom();
+        showIngredientPickerForMeal(ingredients, ingredient => {
+          const label = ingredient.servingSize
+            ? `${ingredient.name} (${ingredient.servingSize})`
+            : ingredient.name;
+          if (!plan.meals[mi].items.includes(label)) {
+            plan.meals[mi].items.push(label);
+            showToast(`Added "${ingredient.name}" to ${plan.meals[mi].type}.`, 'success');
+          } else {
+            showToast(`"${ingredient.name}" is already in this meal.`);
+          }
+          renderEditor();
         });
       });
     });
@@ -938,6 +965,216 @@ function _delta(sorted, field) {
   if (first == null || last == null || first === last) return '0';
   const diff = (last - first).toFixed(1);
   return (diff > 0 ? '+' : '') + diff;
+}
+
+// ─── INGREDIENTS LIBRARY ─────────────────────────────────────────────────────
+
+async function renderIngredientsLibrary(nutritionistId) {
+  const el = document.getElementById('ingredients-list');
+  if (!el) return;
+
+  async function render(filter) {
+    filter = (filter || '').toLowerCase();
+    const all      = await getIngredients(nutritionistId);
+    const filtered = filter ? all.filter(i => i.name.toLowerCase().includes(filter)) : all;
+
+    if (!all.length) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>No ingredients yet.<br>Click <strong>Import Excel</strong> to upload your list.</p>
+        </div>`;
+      return;
+    }
+
+    if (!filtered.length) {
+      el.innerHTML = `<div class="empty-state"><p>No ingredients match your search.</p></div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${all.length} ingredient${all.length !== 1 ? 's' : ''} in library</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Ingredient</th>
+              <th>Serving</th>
+              <th>Calories</th>
+              <th>Protein</th>
+              <th>Carbs</th>
+              <th>Fat</th>
+              <th>Fiber</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(i => `
+              <tr>
+                <td><strong>${escapeHtml(i.name)}</strong></td>
+                <td style="color:var(--text-muted)">${escapeHtml(i.servingSize || '—')}</td>
+                <td>${i.calories  != null ? i.calories  + ' kcal' : '—'}</td>
+                <td>${i.protein   != null ? i.protein   + 'g' : '—'}</td>
+                <td>${i.carbs     != null ? i.carbs     + 'g' : '—'}</td>
+                <td>${i.fat       != null ? i.fat       + 'g' : '—'}</td>
+                <td>${i.fiber     != null ? i.fiber     + 'g' : '—'}</td>
+                <td>
+                  <button class="btn btn-sm btn-ghost del-ing-btn" data-id="${i.id}" style="color:var(--danger)">✕</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    el.querySelectorAll('.del-ing-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this ingredient from your library?')) return;
+        await deleteIngredient(btn.dataset.id);
+        showToast('Ingredient removed.');
+        await render(document.getElementById('ing-search')?.value || '');
+      });
+    });
+  }
+
+  await render();
+
+  document.getElementById('ing-search')?.addEventListener('input', e => render(e.target.value));
+
+  document.getElementById('ing-upload-btn')?.addEventListener('click', () => {
+    document.getElementById('ing-file-input').click();
+  });
+
+  document.getElementById('ing-file-input')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const btn = document.getElementById('ing-upload-btn');
+    btn.disabled = true; btn.textContent = 'Importing…';
+    try {
+      const ingredients = await parseIngredientsExcel(file);
+      if (!ingredients.length) { showToast('No valid ingredients found in that file.', 'error'); return; }
+      await saveIngredientsBatch(nutritionistId, ingredients);
+      showToast(`${ingredients.length} ingredient${ingredients.length !== 1 ? 's' : ''} imported!`, 'success');
+      await render();
+    } catch (err) {
+      console.error(err);
+      showToast('Could not read file. Make sure it is a valid Excel or CSV file.', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Import Excel';
+      e.target.value = '';
+    }
+  });
+
+  document.getElementById('ing-clear-btn')?.addEventListener('click', async () => {
+    const all = await getIngredients(nutritionistId);
+    if (!all.length) return;
+    if (!confirm(`Permanently delete all ${all.length} ingredients from your library?`)) return;
+    const btn = document.getElementById('ing-clear-btn');
+    btn.disabled = true; btn.textContent = 'Clearing…';
+    await clearIngredients(nutritionistId);
+    btn.disabled = false; btn.textContent = 'Clear All';
+    showToast('Library cleared.');
+    await render();
+  });
+}
+
+function parseIngredientsExcel(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      try {
+        const wb   = XLSX.read(e.target.result, { type: 'array' });
+        const ws   = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        const results = rows.map(row => {
+          // Normalise keys to lowercase + trim for flexible column matching
+          const n = {};
+          Object.keys(row).forEach(k => { n[k.toLowerCase().trim()] = row[k]; });
+
+          const name = String(
+            n['name'] || n['ingredient'] || n['food'] || n['item'] || ''
+          ).trim();
+          if (!name) return null;
+
+          const num = (...keys) => {
+            for (const k of keys) {
+              const v = parseFloat(n[k]);
+              if (!isNaN(v)) return Math.round(v * 10) / 10;
+            }
+            return null;
+          };
+          const str = (...keys) => {
+            for (const k of keys) {
+              if (n[k] !== undefined && n[k] !== '') return String(n[k]).trim();
+            }
+            return '';
+          };
+
+          return {
+            name,
+            calories:    num('calories', 'kcal', 'energy', 'cal', 'calorie'),
+            protein:     num('protein', 'proteins'),
+            carbs:       num('carbs', 'carbohydrates', 'carbohydrate', 'carb'),
+            fat:         num('fat', 'fats', 'lipids', 'total fat'),
+            fiber:       num('fiber', 'fibre', 'dietary fiber', 'dietary fibre'),
+            servingSize: str('serving size', 'serving_size', 'serving', 'portion', 'size')
+          };
+        }).filter(Boolean);
+
+        resolve(results);
+      } catch (err) { reject(err); }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function showIngredientPickerForMeal(ingredients, onSelect) {
+  const picker = document.getElementById('ingredient-picker-modal');
+  const list   = document.getElementById('ingredient-picker-list');
+  const search = document.getElementById('ingredient-picker-search');
+  if (!picker || !list) return;
+
+  function renderList(filter) {
+    filter = (filter || '').toLowerCase();
+    const filtered = filter
+      ? ingredients.filter(i => i.name.toLowerCase().includes(filter))
+      : ingredients;
+
+    list.innerHTML = filtered.length
+      ? filtered.map(i => `
+          <div class="card card-sm" style="margin-bottom:8px;cursor:pointer" data-id="${i.id}">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+              <div style="min-width:0">
+                <div style="font-weight:600;font-size:14px">${escapeHtml(i.name)}</div>
+                ${i.servingSize ? `<div style="font-size:12px;color:var(--text-muted)">${escapeHtml(i.servingSize)}</div>` : ''}
+              </div>
+              <div style="text-align:right;font-size:12px;color:var(--text-muted);flex-shrink:0">
+                ${i.calories != null ? `<div style="font-weight:600;color:var(--teal)">${i.calories} kcal</div>` : ''}
+                ${(i.protein != null || i.carbs != null || i.fat != null)
+                  ? `<div>P ${i.protein ?? '—'}g · C ${i.carbs ?? '—'}g · F ${i.fat ?? '—'}g</div>` : ''}
+              </div>
+            </div>
+          </div>`).join('')
+      : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No ingredients match.</div>';
+
+    list.querySelectorAll('[data-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        const ingredient = ingredients.find(i => i.id === card.dataset.id);
+        picker.style.display = 'none';
+        if (search) search.value = '';
+        onSelect(ingredient);
+      });
+    });
+  }
+
+  if (search) { search.value = ''; search.oninput = e => renderList(e.target.value); }
+  renderList();
+  picker.style.display = 'flex';
+  document.getElementById('close-ingredient-picker-btn').onclick = () => {
+    picker.style.display = 'none';
+    if (search) search.value = '';
+  };
 }
 
 // ─── NOTES EDITOR ────────────────────────────────────────────────────────────

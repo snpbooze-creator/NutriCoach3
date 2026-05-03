@@ -270,6 +270,43 @@ async function getMealPhotosByClient(clientId) {
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
+// ─── INGREDIENTS LIBRARY ─────────────────────────────────────────────────────
+
+async function getIngredients(nutritionistId) {
+  const snap = await db.collection('ingredients')
+    .where('nutritionistId', '==', nutritionistId).get();
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+}
+
+async function saveIngredientsBatch(nutritionistId, ingredients) {
+  const BATCH_SIZE = 450;
+  for (let i = 0; i < ingredients.length; i += BATCH_SIZE) {
+    const batch = db.batch();
+    ingredients.slice(i, i + BATCH_SIZE).forEach(ing => {
+      const ref = db.collection('ingredients').doc();
+      batch.set(ref, { nutritionistId, ...ing });
+    });
+    await batch.commit();
+  }
+}
+
+async function deleteIngredient(ingredientId) {
+  await db.collection('ingredients').doc(ingredientId).delete();
+}
+
+async function clearIngredients(nutritionistId) {
+  const snap = await db.collection('ingredients')
+    .where('nutritionistId', '==', nutritionistId).get();
+  const BATCH_SIZE = 450;
+  for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+    const batch = db.batch();
+    snap.docs.slice(i, i + BATCH_SIZE).forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  }
+}
+
 // ─── UTILITIES (sync) ────────────────────────────────────────────────────────
 
 function formatDate(dateStr) {

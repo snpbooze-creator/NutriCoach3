@@ -99,6 +99,7 @@
           <button class="tab" data-tab="appointments">Appointments</button>
           <button class="tab" data-tab="templates">Meal Templates</button>
           <button class="tab" data-tab="recipes">Recipes</button>
+          <button class="tab" data-tab="ingredients">Ingredients</button>
         </div>
 
         <!-- Clients tab -->
@@ -142,6 +143,28 @@
               <button class="btn btn-sm btn-primary" id="new-recipe-btn">+ New Recipe</button>
             </div>
             <div id="recipe-list"></div>
+          </div>
+        </div>
+
+        <!-- Ingredients Library tab -->
+        <div class="tab-panel tab-body" data-tab-group="dash" data-tab="ingredients">
+          <div class="section">
+            <div class="section-header" style="flex-wrap:wrap;gap:8px">
+              <span class="section-title">Ingredients Library</span>
+              <div style="display:flex;gap:8px;flex-shrink:0">
+                <button class="btn btn-sm btn-ghost" id="ing-clear-btn" style="color:var(--danger)">Clear All</button>
+                <button class="btn btn-sm btn-primary" id="ing-upload-btn">Import Excel</button>
+                <input type="file" id="ing-file-input" accept=".xlsx,.xls,.csv" style="display:none">
+              </div>
+            </div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+              Upload an Excel file with columns: <em>name, calories, protein, carbs, fat, fiber, serving size</em>.
+              Your library is stored in the cloud and available every time you sign in.
+            </p>
+            <div class="form-group" style="margin-bottom:12px">
+              <input type="search" id="ing-search" placeholder="Search ingredients…">
+            </div>
+            <div id="ingredients-list"></div>
           </div>
         </div>
       </div>
@@ -262,6 +285,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
